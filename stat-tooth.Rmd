@@ -22,13 +22,15 @@ ToothGrowth$supp <- factor(ToothGrowth$supp, levels = c("OJ", "VC"), labels = c(
 
 ggplot(ToothGrowth, aes(x = len)) +
   geom_histogram() +
-  facet_wrap(~ supp + dose, scales = "free")
+  facet_wrap(~ supp + dose, scales = "free") +
+  labs(title = "Empirical distributions for each supplement and dose combination.")
 
 ggplot(ToothGrowth, aes(x = factor(dose), y = len)) +
   geom_boxplot() +
   facet_wrap(~supp) +
   labs(x = "levels of vitamin C in mg/day",
-       y = "length of odontoblasts")
+       y = "length of odontoblasts",
+       title = "Effect of vitamin C on tooth growth in guinea pigs")
 
 data_summary <- group_by(ToothGrowth, supp, dose) %>% 
   summarise(len_mean = mean(len), sd_len = sd(len))
@@ -89,7 +91,8 @@ ggplot(data_summary, aes(x = dose, y = mean, ymin = min, ymax = max, col = supp)
        y = "length of odontoblasts",
        caption = "Mean values and confidence intervals for each combination of dose and 
 supplement. Note that the actual vitamn C dosages of 0.5, 1 and 2 mg/day have 
-been slightly shifted to prevent overlapping.")
+been slightly shifted to prevent overlapping.",
+title = "Effect of vitamin C on tooth growth in guinea pigs")
 ```
 
 
