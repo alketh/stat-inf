@@ -34,7 +34,7 @@ exp_df <- tibble(id = 1:1000, exp = exps, exp_mean = exp_mean)
 Let's compare the sample mean of the simulated exponential distributions to the theoretical mean which is defined as
 `1/lambda`.
 
-The the sample mean is very similar to the theoretical mean.
+The sample mean is very similar to the theoretical mean.
 
 ```{r}
 mean_pop <- 1/lambda
@@ -48,7 +48,7 @@ abs(mean_pop - mean_dis)/mean_pop
 Let's compare the sample variance of the simulated exponential distributions to the theoretical variance which is defined as
 `1/(lambda*sqrt(40))^2`.
 
-The the sample variance is very similar to the theoretical variance
+The sample variance is very similar to the theoretical variance
 
 ```{r}
 var_pop <- 1/((lambda*sqrt(40))^2)
@@ -66,7 +66,7 @@ ggplot(exp_df, aes(x = exp_mean)) +
   geom_segment(x = mean_dis - var_dis, xend = mean_dis + var_dis, y = .02, yend = .02, col = "blue", lty = 2) +
   stat_function(fun = dnorm, args = list(mean = 1/lambda, sd = ((lambda*sqrt(40))^-2))) +
   theme_bw() +
-  theme(panel.grid = element_blank()) +
+  theme(panel.grid = element_blank(), plot.caption = element_text(hjust = 0)) +
   annotate("segment", x = 6, xend = 6.3, y = 0.7, yend = 0.7, colour = "black") +
   annotate("segment", x = 6, xend = 6.3, y = 0.65, yend = 0.65, colour = "red") +
   annotate("segment", x = 6, xend = 6.3, y = 0.6, yend = 0.6, colour = "red", lty = 2) +
@@ -77,9 +77,10 @@ ggplot(exp_df, aes(x = exp_mean)) +
   annotate("text", x = 6.4, y = 0.6, label = "sample mean", hjust = 0) +
   annotate("text", x = 6.4, y = 0.55, label = "theoretical variance", hjust = 0) +
   annotate("text", x = 6.4, y = 0.5, label = "sample variance", hjust = 0) +
-  labs(caption = "Histogram of the distribution of mean exponentials. The black line indicates the true normal distribution with parameters 
-mean = 5 and sd = 0.625. The vertical red lines show the true population mean (5, solid) and the mean of the simulated 
-distributions (5.03, dashed). The variance is indicates as horizontal lines arround the mean values for the true population 
+  labs(caption = "Histogram of the distribution of mean exponentials. The black line indicates the true normal 
+distribution with parameters mean = 5 and sd = 0.625. The vertical red lines show the true 
+population mean (5, solid) and the mean of the simulated distributions (5.03, dashed). The 
+variance is indicates as horizontal lines arround the mean values for the true population 
 (0.625, solid) and the simulated distributions (0.622, dashed).")
 ```
 
