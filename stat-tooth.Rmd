@@ -1,0 +1,95 @@
+---
+title: "Effect of vitamin C on tooth growth in guinea pigs"
+output: pdf_document
+---
+
+## Overview
+
+We apply basic data exploratory analysis techniques to the ToothGrowth data from the R datasets package. The length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs was observed after applying feeding methods. Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, namely orange juice (OJ) or ascorbic acid (VC).
+
+## Basic exploratory analysis
+
+```{r}
+library("ggplot2")
+library("dplyr")
+
+data("ToothGrowth")
+
+dim(ToothGrowth)
+summary(ToothGrowth)
+
+ToothGrowth$supp <- factor(ToothGrowth$supp, levels = c("OJ", "VC"), labels = c("Orange juice", "Ascorbic acid"))
+
+ggplot(ToothGrowth, aes(x = len)) +
+  geom_histogram() +
+  facet_wrap(~ supp + dose, scales = "free")
+
+ggplot(ToothGrowth, aes(x = factor(dose), y = len)) +
+  geom_boxplot() +
+  facet_wrap(~supp) +
+  labs(x = "levels of vitamin C in mg/day",
+       y = "length of odontoblasts")
+
+data_summary <- group_by(ToothGrowth, supp, dose) %>% 
+  summarise(len_mean = mean(len), sd_len = sd(len))
+
+data_summary
+```
+
+## Confidence intervals
+
+We calculate confidence bounds for each supplement and dose combination resulting in a total of 6 combinations. The confifence bounds are calculated by resampling with replacement of the original data n times (default = 1000) due to the irregular distribution pattern of the data. We assume that the resampled distribution is representative of the true population distribution. The mean value is calculated for each bootstrap sample and the confidence bounds are selected from the ordered mean values. By default 95% confidence bonds are calculated.
+
+```{r}
+conf_resample <- function(data, n = 1000, prop = 0.95) {
+  # Resample data with replacement n times and calculate the mean for each sample.
+  means <- vector(mode = "numeric", length = n)
+  for (i in seq_along(means)) {
+    sam <- sample(data, replace = TRUE)
+    means[i] <- mean(sam)
+  }
+  
+  # Sort mean and select confidence bounds.
+  means <- sort(means)
+  min_id <- which.min(abs(seq(0, 1, length.out = n) - (1 - prop)/2))
+  max_id <- which.min(abs(seq(0, 1, length.out = n) - ((1 - prop)/2 + prop)))
+
+  c(means[min_id], mean(means), means[max_id])
+}
+```
+
+Let's calculate the confidence intervals for the different supplement and dose combinations. First we split the data into different data subsets, one for each combination of supplement and dose. Then we apply the the `conf_resample` function to each subsample and store the minimum and maximum confidence interval bonds in two seperate columns and add the mean value.
+
+```{r}
+ToothGrowth$groups <- with(ToothGrowth, paste(supp, dose))
+data_summary$data <- split(ToothGrowth$len, ToothGrowth$groups)
+
+data_summary$conf <- lapply(data_summary$data, conf_resample)
+
+data_summary$min <- sapply(data_summary$conf, function(x) x[1])
+data_summary$mean <- sapply(data_summary$conf, function(x) x[2])
+data_summary$max <- sapply(data_summary$conf, function(x) x[3])
+```
+
+
+## Conclusions
+
+For dosages of 0.5 and 1 mg vitamin C per day we observed significant differences in tooth growth in guinea pigs. Guinea pigs feed with Ascorbic acid showed an increased tooth growth compared to orange juice. However, no differences in tooth growth were observed for guinea pigs feed with the highest dose of 2 mg vitamin C per day. Overall the tooth growth increased with increased doses of vitamin C. However guinea pigs fed with 1 mg vitamin C per day from ascorbic acid showed similar growth rates compared to guinea pigs feed with 2 mg vitamin C per day (either from ascorbic acid or orange juice).
+
+```{r}
+# Slightly shift the data on the x axis
+data_summary$dose[data_summary$supp == "Orange juice"] <- data_summary$dose[data_summary$supp == "Orange juice"] - 0.01
+data_summary$dose[data_summary$supp != "Orange juice"] <- data_summary$dose[data_summary$supp != "Orange juice"] + 0.01
+
+ggplot(data_summary, aes(x = dose, y = mean, ymin = min, ymax = max, col = supp)) +
+  geom_point() +
+  geom_pointrange() +
+  scale_color_discrete("Supplement") +
+  labs(x = "levels of vitamin C in mg/day",
+       y = "length of odontoblasts",
+       caption = "Mean values and confidence intervals for each combination of dose and 
+supplement. Note that the actual vitamn C dosages of 0.5, 1 and 2 mg/day have 
+been slightly shifted to prevent overlapping.")
+```
+
+
